@@ -1,20 +1,146 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 리봇(Rebot) 랜딩페이지
 
-# Run and deploy your AI Studio app
+카페·베이커리 소상공인을 위한 AI 단골 관리 & 마케팅 자동화 서비스 랜딩페이지
 
-This contains everything you need to run your app locally.
+---
 
-View your app in AI Studio: https://ai.studio/apps/630936a1-6edc-479c-9a3a-68d03d74600c
+## 기술 스택
 
-## Run Locally
+| 항목 | 내용 |
+|---|---|
+| 프레임워크 | React 19 + TypeScript |
+| 빌드 도구 | Vite 6 |
+| 스타일링 | Tailwind CSS v4 |
+| 아이콘 | lucide-react |
+| 애니메이션 | motion (Framer Motion) |
+| 폼 데이터 저장 | Google Apps Script → Google Sheets |
+| 배포 | Vercel |
 
-**Prerequisites:**  Node.js
+---
 
+## 로컬 실행
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+**사전 조건:** Node.js 설치 필요
+
+```bash
+# 1. 의존성 설치
+npm install
+
+# 2. 환경변수 파일 생성
+cp .env.example .env.local
+# .env.local 에 실제 값 입력 (아래 환경변수 항목 참고)
+
+# 3. 개발 서버 실행
+npm run dev
+# → http://localhost:3000 접속
+```
+
+---
+
+## 환경변수
+
+`.env.local` 파일을 생성하고 아래 값을 입력합니다. (`.env.local`은 git에 커밋되지 않습니다)
+
+```env
+GEMINI_API_KEY=your_gemini_api_key
+APP_URL=your_app_url
+VITE_GOOGLE_SCRIPT_URL=your_apps_script_deploy_url
+```
+
+---
+
+## Google Apps Script 설정 (폼 → 구글 시트 연동)
+
+베타 신청 폼 데이터를 구글 시트에 저장하려면 아래 절차를 따릅니다.
+
+### 1. 구글 시트 준비
+
+- 파일명: `리봇 신청자_202606`
+- 시트 탭명: `리봇 신청자_202606`
+- 1행에 헤더 입력:
+
+| A | B | C | D | E | F | G | H |
+|---|---|---|---|---|---|---|---|
+| Timestamp | Shop Name | Owner Name | Phone Number | Shop Type | Notes | Source | Submitted At |
+
+### 2. Apps Script 코드 등록
+
+구글 시트에서 **확장 프로그램 > Apps Script** 열고 아래 코드를 붙여넣기:
+
+```javascript
+var SHEET_NAME = "리봇 신청자_202606";
+var HEADERS = ["Timestamp", "Shop Name", "Owner Name", "Phone Number", "Shop Type", "Notes", "Source", "Submitted At"];
+
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) { sheet = ss.insertSheet(SHEET_NAME); }
+    if (sheet.getLastRow() === 0) { sheet.appendRow(HEADERS); }
+
+    var data = JSON.parse(e.postData.contents);
+
+    if (data.website) {
+      return ContentService.createTextOutput(JSON.stringify({ result: "ignored" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    sheet.appendRow([
+      new Date(), data.shopName || "", data.ownerName || "",
+      data.phoneNumber || "", data.shopType || "",
+      data.notes || "", data.source || "", data.submittedAt || ""
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ result: "error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput("연결 정상").setMimeType(ContentService.MimeType.TEXT);
+}
+```
+
+### 3. 웹 앱으로 배포
+
+1. **배포 > 새 배포** 클릭
+2. 유형: **웹 앱**
+3. 다음 항목으로 실행: **나 (내 계정)**
+4. 액세스 권한: **모든 사용자**
+5. **배포** 클릭 → 발급된 URL을 `.env.local`의 `VITE_GOOGLE_SCRIPT_URL`에 입력
+
+> 코드 수정 후에는 반드시 **새 배포**를 다시 생성해야 반영됩니다.
+
+---
+
+## Vercel 배포
+
+1. [vercel.com](https://vercel.com) 에서 GitHub 저장소 import
+2. Framework Preset: **Vite** 선택
+3. Environment Variables에 `VITE_GOOGLE_SCRIPT_URL` 추가
+4. **Deploy** 클릭
+
+이후 `main` 브랜치에 push하면 자동 재배포됩니다.
+
+---
+
+## 페이지 구성
+
+| 섹션 | 내용 |
+|---|---|
+| Hero | 메인 헤드라인 + 대시보드 프리뷰 |
+| 문제 공감 | 단골 이탈 현실 vs 리봇 솔루션 비교 |
+| 작동방식 | 4단계 설명 + 인터랙티브 AI 시뮬레이터 |
+| 핵심기능 | 4가지 기능 카드 |
+| 단골의 가치 | 매출 복귀 계산기 슬라이더 |
+| 베타 신청 | 폼 → Google Sheets 연동 |
+
+---
+
+## 보안 처리 내역
+
+- `.env.local` git 미추적 (API URL 보호)
+- honeypot 필드로 봇 스팸 방지
+- 성공 화면에 개인정보 미표시
+- 폼 제출 후 입력값 즉시 초기화
+- 인라인/모달 폼 상태 완전 분리
