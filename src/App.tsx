@@ -40,17 +40,29 @@ export default function App() {
   // Navigation active tab (purely visual UX scroll helper)
   const [activeSection, setActiveSection] = useState<'home' | 'problem' | 'how-it-works' | 'features' | 'math' | 'apply'>('home');
 
-  // Beta application modal or inline state
+  // Beta application modal
   const [showApplyModal, setShowApplyModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  
-  // Beta application fields
+
+  // Inline form state
   const [shopName, setShopName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [shopType, setShopType] = useState('cafe');
   const [notes, setNotes] = useState('');
+  const [inlineIsSubmitting, setInlineIsSubmitting] = useState(false);
+  const [inlineShowToast, setInlineShowToast] = useState(false);
+  const [inlineError, setInlineError] = useState('');
+
+  // Modal form state (독립 상태)
+  const [modalShopName, setModalShopName] = useState('');
+  const [modalOwnerName, setModalOwnerName] = useState('');
+  const [modalPhoneNumber, setModalPhoneNumber] = useState('');
+  const [modalShopType, setModalShopType] = useState('cafe');
+  const [modalNotes, setModalNotes] = useState('');
+  const [modalIsSubmitting, setModalIsSubmitting] = useState(false);
+  const [modalError, setModalError] = useState('');
+
+  const [honeypot, setHoneypot] = useState('');
 
   // Interactive Calculator State
   const [averageCheck, setAverageCheck] = useState(8500); // default average check per customer
@@ -98,24 +110,78 @@ export default function App() {
   const estimatedRecovery = averageCheck * revisitTarget * 12; // annualized
   const monthlyRecovery = averageCheck * revisitTarget;
 
-  // Handles beta signup submission
-  const handleApplySubmit = (e: React.FormEvent) => {
+  const submitToSheet = async (payload: Record<string, string>) => {
+    const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+    if (!scriptUrl) throw new Error("VITE_GOOGLE_SCRIPT_URL 미설정");
+    await fetch(scriptUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+  };
+
+  const validatePhone = (v: string) => /^010[-\s]?\d{3,4}[-\s]?\d{4}$/.test(v.trim());
+
+  // 하단 인라인 폼 제출
+  const handleInlineSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !ownerName || !phoneNumber) {
-      alert("⚠️ 필수 입력 항목(가게 이름, 사장님 성함, 연락처)을 모두 적어주세요!");
+    if (honeypot) return;
+    setInlineError('');
+
+    if (!shopName || !ownerName || !phoneNumber || !shopType) {
+      setInlineError("필수 항목(가게 이름, 사장님 성함, 연락처, 업종)을 모두 입력해주세요.");
       return;
     }
-    
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      // As requested: CTA 버튼 클릭 시 JS로 "베타 신청이 접수되었습니다!" alert 표시
-      alert("🎉 베타 신청이 성공적으로 접수되었습니다!\n\n신청하신 정보:\n• 매장명: " + shopName + "\n• 사장님: " + ownerName + "\n• 연락처: " + phoneNumber + "\n\n빠른 시일 내에 마케팅 보좌관 '리봇'이 개별 안내 전화를 드리겠습니다. 3개월 무료 체험 특별 혜택이 정상적으로 등록되었습니다.");
+    if (!validatePhone(phoneNumber)) {
+      setInlineError("연락처는 010-XXXX-XXXX 형식으로 입력해주세요.");
+      return;
+    }
+
+    setInlineIsSubmitting(true);
+    try {
+      await submitToSheet({ shopName, ownerName, phoneNumber, shopType, notes,
+        submittedAt: new Date().toISOString(), source: "landing_page", website: honeypot });
+      setShopName(''); setOwnerName(''); setPhoneNumber(''); setShopType('cafe'); setNotes('');
+      setInlineShowToast(true);
+      setTimeout(() => setInlineShowToast(false), 4500);
+    } catch (err) {
+      console.error("[Rebot] 인라인 폼 제출 오류:", err);
+      setInlineError("제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setInlineIsSubmitting(false);
+    }
+  };
+
+  // 모달 폼 제출
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (honeypot) return;
+    setModalError('');
+
+    if (!modalShopName || !modalOwnerName || !modalPhoneNumber || !modalShopType) {
+      setModalError("필수 항목(가게 이름, 사장님 성함, 연락처, 업종)을 모두 입력해주세요.");
+      return;
+    }
+    if (!validatePhone(modalPhoneNumber)) {
+      setModalError("연락처는 010-XXXX-XXXX 형식으로 입력해주세요.");
+      return;
+    }
+
+    setModalIsSubmitting(true);
+    try {
+      await submitToSheet({ shopName: modalShopName, ownerName: modalOwnerName,
+        phoneNumber: modalPhoneNumber, shopType: modalShopType, notes: modalNotes,
+        submittedAt: new Date().toISOString(), source: "landing_page", website: honeypot });
+      setModalShopName(''); setModalOwnerName(''); setModalPhoneNumber('');
+      setModalShopType('cafe'); setModalNotes(''); setModalError('');
       setShowApplyModal(false);
-    }, 1200);
+    } catch (err) {
+      console.error("[Rebot] 모달 폼 제출 오류:", err);
+      setModalError("제출 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setModalIsSubmitting(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -133,10 +199,10 @@ export default function App() {
         <span>지금 신청하면 <strong>3개월 동안 이용료가 완전히 무료!</strong> (한정 수량 50팀 한정)</span>
         <button 
           onClick={() => {
-            setShopName("소담베이커리");
-            setOwnerName("김소담");
-            setPhoneNumber("010-1234-5678");
-            setShopType("bakery");
+            setModalShopName("소담베이커리");
+            setModalOwnerName("김소담");
+            setModalPhoneNumber("010-1234-5678");
+            setModalShopType("bakery");
             setShowApplyModal(true);
           }}
           className="underline hover:text-amber-100 ml-2 font-bold focus:outline-none transition-colors cursor-pointer"
@@ -907,8 +973,7 @@ export default function App() {
                 마감 임박 9자리 남음
               </div>
 
-              {!isSubmitted ? (
-                <form onSubmit={handleApplySubmit} className="space-y-4" id="beta-apply-form">
+              <form onSubmit={handleInlineSubmit} className="space-y-4" id="beta-apply-form">
                   <div className="border-b border-amber-100 pb-3">
                     <h3 className="font-serif-title text-xl font-bold text-stone-900">
                       리봇(Rebot) 웰컴 베타체험 신청서
@@ -924,8 +989,8 @@ export default function App() {
                       <label className="text-xs font-bold text-stone-700 block">
                         가게 매장명 <span className="text-red-500">*</span>
                       </label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         required
                         placeholder="예) 온정 로스터리 카페"
                         value={shopName}
@@ -938,8 +1003,8 @@ export default function App() {
                       <label className="text-xs font-bold text-stone-700 block">
                         사장님 성함 <span className="text-red-500">*</span>
                       </label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         required
                         placeholder="예) 홍길동"
                         value={ownerName}
@@ -953,8 +1018,8 @@ export default function App() {
                     <label className="text-xs font-bold text-stone-700 block">
                       연락처 (안내 메시지 발송용) <span className="text-red-500">*</span>
                     </label>
-                    <input 
-                      type="tel" 
+                    <input
+                      type="tel"
                       required
                       placeholder="예) 010-1234-5678"
                       value={phoneNumber}
@@ -977,8 +1042,8 @@ export default function App() {
                           type="button"
                           onClick={() => setShopType(type.id)}
                           className={`py-2 px-1 text-center rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                            shopType === type.id 
-                              ? 'bg-orange-600 text-white border-orange-600' 
+                            shopType === type.id
+                              ? 'bg-orange-600 text-white border-orange-600'
                               : 'bg-white border-amber-100 text-stone-700 hover:bg-amber-50/50'
                           }`}
                         >
@@ -990,7 +1055,7 @@ export default function App() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-stone-700 block">문의 기재 사항 & 요청메시지 (선택)</label>
-                    <textarea 
+                    <textarea
                       rows={2}
                       placeholder="설치 기종 편차나 건의하고 싶으신 점이 있으시면 자유롭게 남겨주세요."
                       value={notes}
@@ -999,19 +1064,29 @@ export default function App() {
                     />
                   </div>
 
+                  {/* 인라인 에러 메시지 */}
+                  {inlineError && (
+                    <p className="text-red-600 text-xs font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">{inlineError}</p>
+                  )}
+
                   {/* Informational consent check */}
                   <div className="flex items-start gap-2 pt-1 text-[11px] text-stone-500 leading-normal">
-                    <input type="checkbox" defaultChecked required className="mt-0.5 rounded border-amber-300 text-orange-600 focus:ring-orange-500" />
+                    <input type="checkbox" required className="mt-0.5 rounded border-amber-300 text-orange-600 focus:ring-orange-500" />
                     <span>개인정보 수집 및 베타 3개월 프로모션 가입을 희망하며 연락처를 제공하는 것에 동의합니다.</span>
+                  </div>
+
+                  {/* Honeypot: 봇 방지용 숨김 필드 */}
+                  <div style={{position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden'}} aria-hidden="true">
+                    <input type="text" name="website" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
                   </div>
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={inlineIsSubmitting}
                     className="w-full bg-[#5C4033] hover:bg-[#4E3529] text-white py-4.5 rounded-2xl font-bold tracking-wide transition-all shadow-lg active:scale-95 disabled:opacity-75 flex items-center justify-center gap-2 text-base cursor-pointer"
                     id="submit-beta-form-btn"
                   >
-                    {isSubmitting ? (
+                    {inlineIsSubmitting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
                         <span>신청서 전송 중...</span>
@@ -1024,47 +1099,6 @@ export default function App() {
                     )}
                   </button>
                 </form>
-              ) : (
-                // Beautiful Inline Success Screen after submit!
-                <div className="text-center py-10 px-4 space-y-6 flex flex-col items-center justify-center fade-in">
-                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center text-3xl animate-bounce">
-                    🎉
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h3 className="font-serif-title text-2xl font-bold text-stone-900">
-                      베타 신청이 접수되었습니다!
-                    </h3>
-                    <p className="text-sm text-stone-600 leading-relaxed max-w-sm mx-auto">
-                      감사합니다, <strong className="text-stone-900">{ownerName}</strong> 사장님! 적어주신 소중한 연락처(<strong className="text-stone-900">{phoneNumber}</strong>)로 3일 이내에 담당 마케팅 보좌관이 연락을 드릴 예정입니다.
-                    </p>
-                    <p className="text-xs text-orange-600 font-medium">
-                      🏘️ 소담베이커리와 같은 소중한 동네 명물 가게들이 활기를 되찾을 때까지 리봇이 온 마음을 보태겠습니다.
-                    </p>
-                  </div>
-
-                  <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs text-left text-neutral-600 w-full">
-                    <strong className="text-stone-900 block mb-1">📋 접수 완료 확인 내역:</strong>
-                    • 가게명: {shopName}<br />
-                    • 신청자: {ownerName}<br />
-                    • 가입 혜택: 3개월 프리미엄 무료 플랜 &amp; 무상 POS 엑셀 세팅 지원 대상자
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSubmitted(false);
-                      setShopName('');
-                      setOwnerName('');
-                      setPhoneNumber('');
-                      setNotes('');
-                    }}
-                    className="text-xs bg-stone-100 text-stone-600 px-4 py-2 rounded-lg hover:bg-stone-200 transition-colors cursor-pointer"
-                  >
-                    새로운 매장 추가 신청하기
-                  </button>
-                </div>
-              )}
 
             </div>
 
@@ -1099,6 +1133,14 @@ export default function App() {
         </div>
       </footer>
 
+      {/* 성공 토스트 (4.5초 후 자동 사라짐) */}
+      {inlineShowToast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-emerald-700 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-sm w-[calc(100%-2rem)]">
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <span className="text-sm font-medium leading-snug">베타 신청이 접수되었습니다. 담당자가 입력하신 연락처로 3일 이내 연락드릴 예정입니다.</span>
+        </div>
+      )}
+
       {/* FIXED FLOATING POPUP DIALOG FOR BETA APPLY */}
       {showApplyModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1111,7 +1153,7 @@ export default function App() {
               <X className="w-5 h-5 hover:scale-105 transition-transform" />
             </button>
 
-            <form onSubmit={handleApplySubmit} className="space-y-4">
+            <form onSubmit={handleModalSubmit} className="space-y-4">
               <div className="border-b border-amber-100 pb-3">
                 <span className="text-[10px] bg-orange-100 text-orange-900 px-2 py-0.5 rounded-full font-bold">3개월 이용료 무료 프로모션</span>
                 <h3 className="font-serif-title text-xl font-bold text-stone-900 mt-2">
@@ -1124,36 +1166,36 @@ export default function App() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-stone-700 block">매장 상호명 <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   placeholder="예) 소담 커피 스페이스"
-                  value={shopName}
-                  onChange={(e) => setShopName(e.target.value)}
+                  value={modalShopName}
+                  onChange={(e) => setModalShopName(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-amber-200 bg-white focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-stone-700 block">사장님 성함 <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   placeholder="예) 김소담"
-                  value={ownerName}
-                  onChange={(e) => setOwnerName(e.target.value)}
+                  value={modalOwnerName}
+                  onChange={(e) => setModalOwnerName(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-amber-200 bg-white focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-stone-700 block">연락처 <span className="text-red-500">*</span></label>
-                <input 
-                  type="tel" 
+                <input
+                  type="tel"
                   required
                   placeholder="예) 010-1234-5678"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  value={modalPhoneNumber}
+                  onChange={(e) => setModalPhoneNumber(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-amber-200 bg-white focus:outline-none"
                 />
               </div>
@@ -1170,10 +1212,10 @@ export default function App() {
                     <button
                       key={type.id}
                       type="button"
-                      onClick={() => setShopType(type.id)}
+                      onClick={() => setModalShopType(type.id)}
                       className={`py-2 px-1 text-center rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                        shopType === type.id 
-                          ? 'bg-orange-600 text-white border-orange-600' 
+                        modalShopType === type.id
+                          ? 'bg-orange-600 text-white border-orange-600'
                           : 'bg-white border-amber-100 text-stone-700 hover:bg-amber-50/50'
                       }`}
                     >
@@ -1183,12 +1225,22 @@ export default function App() {
                 </div>
               </div>
 
+              {/* 모달 에러 메시지 */}
+              {modalError && (
+                <p className="text-red-600 text-xs font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2">{modalError}</p>
+              )}
+
+              {/* Honeypot: 봇 방지용 숨김 필드 */}
+              <div style={{position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden'}} aria-hidden="true">
+                <input type="text" name="website" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
+              </div>
+
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={modalIsSubmitting}
                 className="w-full bg-[#5C4033] hover:bg-[#4E3529] text-white py-3.5 rounded-xl font-bold transition-all shadow-md active:scale-95 disabled:opacity-70 mt-2 flex items-center justify-center gap-1 cursor-pointer"
               >
-                {isSubmitting ? '신청 중입니다...' : '무료 체험판 든든하게 받기 ⭐'}
+                {modalIsSubmitting ? '신청 중입니다...' : '무료 체험판 든든하게 받기 ⭐'}
               </button>
             </form>
           </div>

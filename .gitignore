@@ -1,8 +1,48 @@
+# Dependencies
 node_modules/
-build/
+
+# Build output
 dist/
+build/
 coverage/
-.DS_Store
-*.log
-.env*
+
+# Environment variables (개인정보·API키 포함 파일 — 절대 커밋 금지)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+# 아래 파일만 커밋 허용 (실제 값 없는 예시 파일)
 !.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+vite.config.ts.timestamp*
