@@ -1,0 +1,6 @@
+{
+  "name": "리봇 (Rebot)",
+  "description": "카페·베이커리 사장님들을 위한 단골 고객 이탈 감지 및 AI 마케팅 자동화 서비스",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
