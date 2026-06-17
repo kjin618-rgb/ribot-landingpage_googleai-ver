@@ -1032,9 +1032,9 @@ export default function App() {
                     <label className="text-xs font-bold text-stone-700 block">업종 카테고리</label>
                     <div className="grid grid-cols-4 gap-2">
                       {[
-                        { id: 'cafe', label: '카페 ☕️' },
-                        { id: 'dessert', label: '디저트 🍩' },
-                        { id: 'bakery', label: '베이커리 🥐' },
+                        { id: 'cafe', label: '카페' },
+                        { id: 'dessert', label: '디저트' },
+                        { id: 'bakery', label: '베이커리' },
                         { id: 'other', label: '기타 매장' }
                       ].map((type) => (
                         <button
@@ -1204,10 +1204,10 @@ export default function App() {
                 <label className="text-xs font-bold text-stone-700 block">업종 유형</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'cafe', label: '디카 원두 카페 ☕️' },
-                    { id: 'dessert', label: '구움과자 디저트 🍩' },
-                    { id: 'bakery', label: '오븐 베이커리 🥐' },
-                    { id: 'other', label: '기타 1인 매장 🏠' }
+                    { id: 'cafe', label: '카페' },
+                    { id: 'dessert', label: '디저트' },
+                    { id: 'bakery', label: '베이커리' },
+                    { id: 'other', label: '기타 매장' }
                   ].map((type) => (
                     <button
                       key={type.id}
