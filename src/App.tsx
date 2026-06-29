@@ -287,7 +287,7 @@ export default function App() {
             {/* Friendly Badge */}
             <div className="inline-flex items-center gap-1.5 bg-[#FFE0B2]/40 border border-[#E0D7C6]/80 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#3E2723]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A65] animate-ping"></span>
-              <span>카페·디저트 가게 사장님을 위한 AI 소식보좌관</span>
+              <span>카페·베이커리 사장님을 위한 QR 스탬프 · AI 단골 CRM</span>
             </div>
 
             {/* Core Headline */}
@@ -298,7 +298,7 @@ export default function App() {
 
             {/* Easy Subtitle */}
             <p className="text-[#5D4037] text-base sm:text-lg lg:text-xl leading-relaxed max-w-xl mx-auto md:mx-0">
-              바쁜 하루살이 매장 일과에 지치셨죠? 30일째 방문을 멈춘 고마운 손님들, <strong className="font-semibold text-[#3E2723]">리봇 AI</strong>가 한눈에 찾아내어 마음을 따끈하게 녹일 맞춤 웰컴백 메시지와 쿠폰, SNS 포스트 초안을 알아서 뚝딱 준비해 드립니다.
+              비싼 POS나 키오스크 없이, QR 코드 하나로 고객 방문 데이터가 차곡차곡 쌓입니다. 단골 기록이 모이면 <strong className="font-semibold text-[#3E2723]">리봇 AI</strong>가 발걸음이 뜸해진 손님을 바로 찾아내어, 방문 이력 기반의 맞춤 안부 메시지·재방문 쿠폰·SNS 포스트 초안을 알아서 준비해 드립니다.
             </p>
 
             {/* Action Group */}
@@ -382,7 +382,7 @@ export default function App() {
                   </div>
                   
                   <div className="text-[#5D4037] text-xs leading-relaxed">
-                    <strong className="text-[#3E2723]">이지은 단골님</strong> (라떼 주문 1위) 방문 주기가 평소(7일)보다 너무 길어졌어요.
+                    <strong className="text-[#3E2723]">이지은 단골님</strong> (단골 메뉴: 바닐라 라떼) 방문 주기가 평소(7일)보다 너무 길어졌어요.
                   </div>
 
                   {/* AI Generated preview inside simulator card snippet */}
@@ -469,6 +469,10 @@ export default function App() {
                       <span className="text-red-500 font-bold mt-0.5">&bull;</span>
                       <span>신메뉴가 나오거나 이벤트를 해도 인스타그램 구석에만 올려 소식을 아는 분들만 알고 지나칩니다.</span>
                     </li>
+                    <li className="flex items-start gap-2.5 text-[#5D4037] text-sm">
+                      <span className="text-red-500 font-bold mt-0.5">&bull;</span>
+                      <span>종이 스탬프 카드로는 고객 연락처가 남지 않아, 단골이 발길을 끊어도 먼저 연락할 방법이 없습니다.</span>
+                    </li>
                   </ul>
                 </div>
 
@@ -493,7 +497,7 @@ export default function App() {
                   <ul className="space-y-3 pt-2">
                     <li className="flex items-start gap-2.5 text-[#3E2723] text-sm">
                       <span className="text-[#FF8A65] font-bold mt-0.5">&bull;</span>
-                      <span><strong>AI 자동 고객 예측 감지 :</strong> POS 데이터에서 평소보다 방문 주기가 늦어지며 서서히 뜸해진 고객들을 AI가 바로 발굴해 리포트합니다.</span>
+                      <span><strong>AI 자동 방문 이탈 감지 :</strong> QR 스탬프로 쌓인 방문 기록을 바탕으로, 평소보다 발걸음이 뜸해진 단골 고객을 AI가 자동으로 발굴해 리포트합니다.</span>
                     </li>
                     <li className="flex items-start gap-2.5 text-[#3E2723] text-sm">
                       <span className="text-[#FF8A65] font-bold mt-0.5">&bull;</span>
@@ -535,8 +539,8 @@ export default function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
               <div className="bg-white p-5 rounded-2xl border border-[#E0D7C6]/65 shadow-sm space-y-3">
                 <div className="w-8 h-8 rounded-full bg-[#FFE0B2] text-[#3E2723] font-bold flex items-center justify-center text-xs">01</div>
-                <h4 className="font-bold text-sm text-[#3E2723]">하루 1회 엑셀등록</h4>
-                <p className="text-xs text-[#8D6E63] leading-relaxed">POS 매출 내역을 마케팅 대시보드에 단 3초 만에 간편히 복사해 붙여넣습니다.</p>
+                <h4 className="font-bold text-sm text-[#3E2723]">QR 스캔으로 스탬프 적립</h4>
+                <p className="text-xs text-[#8D6E63] leading-relaxed">매장 안에 QR을 출력해 두면, 고객이 방문할 때마다 스캔 한 번으로 스탬프가 자동 적립되고 방문 기록이 쌓입니다.</p>
               </div>
               <div className="bg-white p-5 rounded-2xl border border-[#E0D7C6]/65 shadow-sm space-y-3">
                 <div className="w-8 h-8 rounded-full bg-[#FFE0B2] text-[#3E2723] font-bold flex items-center justify-center text-xs">02</div>
@@ -947,7 +951,7 @@ export default function App() {
                 지금 신청하시면 3개월 동안 비용 없이 단골 귀환을 도와드려요!
               </h2>
               <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-                "매장에 연동하는 과정이 걱정되시나요?" 마케팅 담당자 리봇이 신청 즉시 개별 안심 연락을 드리고 사장님 매장 POS에 바로 맞춰 직접 친절하게 모든 세팅을 완료해 드립니다.
+                "QR 설정이나 시작 방법이 걱정되시나요?" 리봇 담당자가 신청 즉시 개별 안심 연락을 드리고, QR 출력부터 대시보드 초기 세팅까지 친절하게 모두 도와드립니다.
               </p>
 
               <div className="space-y-3.5 pt-2 hidden md:block">
@@ -1128,7 +1132,7 @@ export default function App() {
 
         <div className="text-stone-600 pt-6 border-t border-stone-900 text-[11px] max-w-4xl mx-auto space-y-1">
           <p>상호명: (주)리봇마케팅테크 | 대표: 홍단골 | 주소: 서울특별시 마포구 백범로 3층 카페살리기연구실</p>
-          <p>본 서비스 of AI 메시지 생성 엔진은 대형 소상공인 POS 포맷 연동을 기반으로 안전하게 작동합니다.</p>
+          <p>본 서비스의 AI 메시지 생성 엔진은 QR 스탬프 방문 기록을 기반으로 안전하게 작동합니다.</p>
           <p>&copy; 2026 REBOT. All rights reserved. Designed for local warm bakeries and cafes with love 🍞</p>
         </div>
       </footer>
